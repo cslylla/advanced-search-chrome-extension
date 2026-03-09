@@ -159,6 +159,10 @@
   color: #6B5757;
 }
 
+.popup-char-count--warning {
+  color: #E6B34D;
+}
+
 .popup-hint {
   margin: 8px 0 16px;
   font-size: 12px;

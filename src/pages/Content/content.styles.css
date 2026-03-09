@@ -196,6 +196,13 @@
   color: #6B5757;
 }
 
+.job-scanner-results-empty {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: #6B5757;
+  font-style: italic;
+}
+
 .job-scanner-results-section-header {
   margin: 16px 0 8px;
   font-size: 14px;
@@ -252,6 +259,17 @@
 }
 
 /* Error */
+.job-scanner-error-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.job-scanner-error-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
 .job-scanner-error-text {
   font-size: 14px;
   color: #dc2626;
@@ -259,11 +277,54 @@
   margin: 0;
 }
 
+/* Loading State */
+.job-scanner-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+  gap: 16px;
+}
+
+.job-scanner-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #F5F5F5;
+  border-top-color: #D4A843;
+  border-radius: 50%;
+  animation: job-scanner-spin 0.8s linear infinite;
+}
+
+@keyframes job-scanner-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.job-scanner-loading-text {
+  margin: 0;
+  font-size: 14px;
+  color: #4A3939;
+}
+
 /* AI Results */
+.job-scanner-ai-modal .job-scanner-modal-body {
+  padding: 20px;
+}
+
 .job-scanner-ai-body {
   font-size: 14px;
   line-height: 1.6;
   color: #2D1F1F;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.job-scanner-ai-body br {
+  display: block;
+  content: '';
+  margin-top: 4px;
 }
 
 /* Highlight pulse for click-to-jump */

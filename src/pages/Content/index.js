@@ -28,6 +28,12 @@
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
   function extractPageText() {
     const clone = document.body.cloneNode(true);
     const toRemove = clone.querySelectorAll(SELECTORS_TO_EXCLUDE);
@@ -96,14 +102,19 @@
   }
 
   function clearHighlights() {
-    document.querySelectorAll('.job-scanner-highlight').forEach((el) => {
-      const parent = el.parentNode;
-      const text = document.createTextNode(el.textContent);
-      parent.replaceChild(text, el);
-      parent.normalize();
-    });
-    const styleEl = document.getElementById('job-scanner-highlight-styles');
-    if (styleEl) styleEl.remove();
+    try {
+      document.querySelectorAll('.job-scanner-highlight').forEach((el) => {
+        const parent = el.parentNode;
+        if (!parent) return;
+        const text = document.createTextNode(el.textContent);
+        parent.replaceChild(text, el);
+        parent.normalize();
+      });
+      const styleEl = document.getElementById('job-scanner-highlight-styles');
+      if (styleEl) styleEl.remove();
+    } catch (err) {
+      console.warn('Job Scanner: Error clearing highlights', err);
+    }
   }
 
   function injectHighlightStyles(template) {
@@ -144,68 +155,75 @@
   }
 
   function applyHighlights(template) {
-    clearHighlights();
-    injectHighlightStyles(template);
+    try {
+      clearHighlights();
+      injectHighlightStyles(template);
 
-    const flatKeywords = [];
-    (template.categories || []).forEach((cat, catIndex) => {
-      (cat.keywords || []).forEach((kw) => {
-        if (kw && kw.trim()) {
-          flatKeywords.push({
-            keyword: kw.trim(),
-            categoryIndex: catIndex,
-          });
+      const flatKeywords = [];
+      (template.categories || []).forEach((cat, catIndex) => {
+        (cat.keywords || []).forEach((kw) => {
+          if (kw && kw.trim()) {
+            flatKeywords.push({
+              keyword: kw.trim(),
+              categoryIndex: catIndex,
+            });
+          }
+        });
+      });
+
+      if (flatKeywords.length === 0) return;
+
+      const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+      );
+
+      const textNodes = [];
+      let node;
+      while ((node = walker.nextNode())) {
+        if (node.textContent.trim() && !isInsideExcludedElement(node)) {
+          textNodes.push(node);
+        }
+      }
+
+      textNodes.forEach((textNode) => {
+        const text = textNode.textContent;
+        const matches = getMatchesInText(text, flatKeywords);
+        if (matches.length === 0) return;
+
+        const fragment = document.createDocumentFragment();
+        let lastEnd = 0;
+
+        matches.forEach((m) => {
+          if (m.start > lastEnd) {
+            fragment.appendChild(
+              document.createTextNode(text.slice(lastEnd, m.start))
+            );
+          }
+          const span = document.createElement('span');
+          span.className = `job-scanner-highlight job-scanner-highlight-cat-${m.categoryIndex}`;
+          span.textContent = text.slice(m.start, m.end);
+          span.dataset.categoryIndex = String(m.categoryIndex);
+          fragment.appendChild(span);
+          lastEnd = m.end;
+        });
+
+        if (lastEnd < text.length) {
+          fragment.appendChild(document.createTextNode(text.slice(lastEnd)));
+        }
+
+        const parent = textNode.parentNode;
+        if (parent) {
+          parent.replaceChild(fragment, textNode);
         }
       });
-    });
 
-    if (flatKeywords.length === 0) return;
-
-    const walker = document.createTreeWalker(
-      document.body,
-      NodeFilter.SHOW_TEXT,
-      null,
-      false
-    );
-
-    const textNodes = [];
-    let node;
-    while ((node = walker.nextNode())) {
-      if (node.textContent.trim() && !isInsideExcludedElement(node)) {
-        textNodes.push(node);
-      }
+      setupClickToJump();
+    } catch (err) {
+      console.warn('Job Scanner: Error applying highlights', err);
     }
-
-    textNodes.forEach((textNode) => {
-      const text = textNode.textContent;
-      const matches = getMatchesInText(text, flatKeywords);
-      if (matches.length === 0) return;
-
-      const fragment = document.createDocumentFragment();
-      let lastEnd = 0;
-
-      matches.forEach((m) => {
-        if (m.start > lastEnd) {
-          fragment.appendChild(
-            document.createTextNode(text.slice(lastEnd, m.start))
-          );
-        }
-        const span = document.createElement('span');
-        span.className = `job-scanner-highlight job-scanner-highlight-cat-${m.categoryIndex}`;
-        span.textContent = text.slice(m.start, m.end);
-        span.dataset.categoryIndex = String(m.categoryIndex);
-        fragment.appendChild(span);
-        lastEnd = m.end;
-      });
-
-      if (lastEnd < text.length) {
-        fragment.appendChild(document.createTextNode(text.slice(lastEnd)));
-      }
-
-      textNode.parentNode.replaceChild(fragment, textNode);
-    });
-
-    setupClickToJump();
   }
 
   let highlightElements = [];
@@ -347,6 +365,13 @@
 
     const found = results.found || [];
     const notFound = results.notFound || [];
+
+    if (found.length === 0 && notFound.length === 0) {
+      const emptyMsg = document.createElement('p');
+      emptyMsg.className = 'job-scanner-results-empty';
+      emptyMsg.textContent = 'No keywords in this template. Add keywords in the extension popup.';
+      body.appendChild(emptyMsg);
+    }
 
     if (found.length > 0) {
       const foundHeader = document.createElement('p');
@@ -495,6 +520,63 @@
     );
   }
 
+  function showLoadingModal() {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'job-scanner-modal-backdrop';
+
+    const modal = document.createElement('div');
+    modal.className = 'job-scanner-modal';
+
+    const header = document.createElement('div');
+    header.className = 'job-scanner-modal-header';
+    const title = document.createElement('h2');
+    title.className = 'job-scanner-modal-title';
+    title.textContent = 'AI Match Analysis';
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'job-scanner-modal-close';
+    closeBtn.setAttribute('aria-label', 'Cancel');
+    closeBtn.innerHTML = '&times;';
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+
+    const body = document.createElement('div');
+    body.className = 'job-scanner-modal-body';
+    body.innerHTML = `
+      <div class="job-scanner-loader">
+        <div class="job-scanner-spinner"></div>
+        <p class="job-scanner-loading-text">Analyzing job fit...</p>
+      </div>
+    `;
+
+    modal.appendChild(header);
+    modal.appendChild(body);
+    backdrop.appendChild(modal);
+
+    document.body.style.overflow = 'hidden';
+    document.body.appendChild(backdrop);
+
+    let cancelled = false;
+
+    function closeLoading() {
+      if (backdrop.parentNode) {
+        backdrop.remove();
+      }
+      document.body.style.overflow = '';
+    }
+
+    closeBtn.addEventListener('click', () => {
+      cancelled = true;
+      closeLoading();
+    });
+
+    return {
+      close: closeLoading,
+      get cancelled() {
+        return cancelled;
+      },
+    };
+  }
+
   function runAiAnalysis() {
     chrome.storage.local.get(['cvText', 'apiKey'], (storage) => {
       const cvText = storage.cvText || '';
@@ -519,24 +601,30 @@
         return;
       }
 
+      const loader = showLoadingModal();
+
       chrome.runtime.sendMessage(
         { action: 'analyzeJob', jobText, cvText },
         (response) => {
-        if (chrome.runtime.lastError) {
-          showErrorModal(
-            chrome.runtime.lastError.message || 'Failed to connect to extension.'
-          );
-          return;
+          loader.close();
+
+          if (loader.cancelled) return;
+
+          if (chrome.runtime.lastError) {
+            showErrorModal(
+              chrome.runtime.lastError.message || 'Failed to connect to extension.'
+            );
+            return;
+          }
+          if (response?.error) {
+            showErrorModal(response.error);
+            return;
+          }
+          if (response?.analysis) {
+            showAiResultsModal(response.analysis);
+          }
         }
-        if (response?.error) {
-          showErrorModal(response.error);
-          return;
-        }
-        if (response?.analysis) {
-          showAiResultsModal(response.analysis);
-        }
-      }
-    );
+      );
     });
   }
 
@@ -560,9 +648,9 @@
 
     const body = document.createElement('div');
     body.className = 'job-scanner-modal-body';
-    const errEl = document.createElement('p');
-    errEl.className = 'job-scanner-error-text';
-    errEl.textContent = message;
+    const errEl = document.createElement('div');
+    errEl.className = 'job-scanner-error-content';
+    errEl.innerHTML = `<span class="job-scanner-error-icon" aria-hidden="true">⚠️</span><p class="job-scanner-error-text">${escapeHtml(message)}</p>`;
     body.appendChild(errEl);
 
     modal.appendChild(header);
@@ -588,7 +676,7 @@
     backdrop.className = 'job-scanner-modal-backdrop';
 
     const modal = document.createElement('div');
-    modal.className = 'job-scanner-modal';
+    modal.className = 'job-scanner-modal job-scanner-ai-modal';
 
     const header = document.createElement('div');
     header.className = 'job-scanner-modal-header';
@@ -605,8 +693,16 @@
     body.className = 'job-scanner-modal-body job-scanner-ai-body';
     body.innerHTML = analysis.replace(/\n/g, '<br>');
 
+    const footer = document.createElement('div');
+    footer.className = 'job-scanner-modal-footer';
+    const closeBtnFooter = document.createElement('button');
+    closeBtnFooter.className = 'job-scanner-action-btn job-scanner-action-btn--full';
+    closeBtnFooter.textContent = 'Close';
+    footer.appendChild(closeBtnFooter);
+
     modal.appendChild(header);
     modal.appendChild(body);
+    modal.appendChild(footer);
     backdrop.appendChild(modal);
 
     function closeModal() {
@@ -618,6 +714,7 @@
       if (e.target === backdrop) closeModal();
     });
     closeBtn.addEventListener('click', closeModal);
+    closeBtnFooter.addEventListener('click', closeModal);
 
     document.body.style.overflow = 'hidden';
     document.body.appendChild(backdrop);

@@ -447,7 +447,10 @@ const Popup = () => {
           rows={4}
         />
         {hasCvSaved && (
-          <p className="popup-char-count">{cvText.length} characters</p>
+          <p className={`popup-char-count ${cvText.length > 10000 ? 'popup-char-count--warning' : ''}`}>
+            {cvText.length.toLocaleString()} characters
+            {cvText.length > 10000 && ' (very long — may affect AI analysis)'}
+          </p>
         )}
         <div className="popup-buttons">
           <button
