@@ -1,0 +1,197 @@
+.popup {
+  min-width: 340px;
+  padding: 0;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', Roboto, sans-serif;
+  background: linear-gradient(180deg, #402e32 0%, #35282b 100%);
+  box-shadow: inset 0 1px 0 rgba(219, 161, 28, 0.05);
+}
+
+.popup-header {
+  padding: 24px;
+  background: linear-gradient(135deg, #402e32 0%, #2d2224 50%, #402e32 100%);
+  border-bottom: 1px solid rgba(219, 161, 28, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.popup-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #dba11c;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.popup-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #dfe0df;
+}
+
+.popup-body {
+  padding: 24px;
+}
+
+.popup-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(219, 161, 28, 0.25);
+}
+
+.popup-section-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #dfe0df;
+}
+
+.popup-disable-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fca5a5;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popup-disable-btn:hover {
+  background: rgba(248, 113, 113, 0.2);
+  border-color: #f87171;
+}
+
+.popup-enable-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popup-enable-btn:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: #22c55e;
+}
+
+.popup-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #e2e8f0;
+  margin-bottom: 8px;
+}
+
+.popup-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 14px;
+  border: 1px solid rgba(219, 161, 28, 0.3);
+  border-radius: 10px;
+  background: rgba(64, 46, 50, 0.6);
+  color: #f5f5f5;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.popup-input::placeholder {
+  color: #94a3b8;
+}
+
+.popup-input:focus {
+  outline: none;
+  border-color: #dba11c;
+  box-shadow: 0 0 0 2px rgba(219, 161, 28, 0.25);
+}
+
+.popup-configured {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #22c55e;
+}
+
+.popup-hint {
+  margin: 8px 0 16px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.popup-hint a {
+  color: #dba11c;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.popup-hint a:hover {
+  text-decoration: underline;
+  color: #e8b42a;
+}
+
+.popup-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.popup-save-btn {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #402e32;
+  background: linear-gradient(135deg, #dba11c 0%, #c99410 100%);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(219, 161, 28, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.popup-save-btn:hover {
+  box-shadow: 0 6px 20px rgba(219, 161, 28, 0.45);
+  transform: translateY(-1px);
+}
+
+.popup-save-btn:active {
+  transform: scale(0.98);
+}
+
+.popup-save-btn--saved {
+  background: #22c55e;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+}
+
+.popup-delete-btn {
+  width: 100%;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fca5a5;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popup-delete-btn:hover {
+  background: rgba(248, 113, 113, 0.2);
+  border-color: #f87171;
+}
+
+.popup-status {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #f87171;
+}
+
+.popup-status--success {
+  color: #22c55e;
+}
